@@ -197,7 +197,7 @@ class PluginInfo(Plugin):
             except:
                 print("Impossible to parse .NET GUID")
 
-        self.display_debug(pe)
+        #self.display_debug(pe)
         richpe = get_richpe_hash(pe)
         if richpe:
             print("RichPE Hash\t{}".format(richpe))
