@@ -5,7 +5,7 @@ import hashlib
 import pefile
 import datetime
 from pecli.plugins.base import Plugin
-from pecli.lib.display import display_sections
+
 
 class PluginSize(Plugin):
     name = "checksize"
@@ -16,14 +16,11 @@ class PluginSize(Plugin):
         return max(map(lambda x: x.PointerToRawData + x.SizeOfRawData, pe.sections))
 
     def add_arguments(self, parser):
-        parser.add_argument('--quiet', '-q', action='store_true', help='Quiet output')
-        parser.add_argument('--extra', '-e',  help='Dump extra data in another file')
-        parser.add_argument('--write', '-w',  help='Copy the file with the right size')
+        parser.add_argument('--extra', '-e', help='Dump extra data in another file')
+        parser.add_argument('--write', '-w', help='Copy the file with the right size')
         self.parser = parser
 
-    def run(self, args, pe, data):
-        if not args.quiet:
-            display_sections(pe)
+    def run_cli(self, args, pe, data):
 
         size = self.get_pe_size(pe)
         if len(data) > size:

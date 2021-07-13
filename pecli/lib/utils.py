@@ -31,3 +31,24 @@ def debug_guid(pe):
                     hex_reverse(i.entry.Signature_Data6, 8)
                 )
     return None
+
+def search_section(pe, address, physical=True):
+    """Search the section of the address (return None if not found)"""
+    if physical:
+        for s in pe.sections:
+            if (address >= s.PointerToRawData) and (address <= s.PointerToRawData + s.SizeOfRawData):
+                #vaddr = pe.OPTIONAL_HEADER.ImageBase + pos - s.PointerToRawData + s.VirtualAddress
+                return s.Name.decode('utf-8', 'ignore').strip('\x00')
+    else:
+        for s in pe.sections:
+            if (address >= (pe.OPTIONAL_HEADER.ImageBase + s.VirtualAddress)) and (address <= (pe.OPTIONAL_HEADER.ImageBase + s.VirtualAddress + s.Misc_VirtualSize)):
+                return s.Name.decode('utf-8', 'ignore').strip('\x00')
+
+    return "unknown"
+
+def cli_out(msg, cli_mode):
+    """
+    Print the message to stdout if cli_mode is True
+    """
+    if cli_mode:
+        print(msg)

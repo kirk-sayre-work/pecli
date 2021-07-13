@@ -5,6 +5,7 @@ import yara
 import os
 import copy
 from pecli.plugins.base import Plugin
+from pecli.lib.utils import cli_out
 
 
 class PluginCrypto(Plugin):
@@ -25,26 +26,43 @@ class PluginCrypto(Plugin):
         return (None, None)
 
 
-    def run(self, args, pe, data):
+    def get_results(self, pe, data, cli_mode=False):
+
         crypto_db = os.path.dirname(os.path.realpath(__file__))[:-7] + "data/yara-crypto.yar"
         if not os.path.isfile(crypto_db):
-            print("Problem accessing the yara database")
-            return
+            if cli_mode:
+                print("Problem accessing the yara database")
+            else:
+                raise Exception("Problem accessing the yara database")
 
         rules = yara.compile(filepath=crypto_db)
         matches = rules.match(data=data)
+        results = []
         if len(matches) > 0:
             for match in matches:
+
                 paddr = match.strings[0][0]
+                results.append({
+                    "rule": match.rule,
+                    "address": hex(paddr)
+                })
+
+                # try to pin down the virtual/logical address if we can
+                # TODO add to non-cli mode?
                 section, vaddr = self.convert_physical_addr(pe, paddr)
                 if section:
-                    print("Found : {} at {} ({} - {})".format(
+                    cli_out("Found : {} at {} ({} - {})".format(
                         match.rule,
                         hex(paddr),
                         section,
                         hex(vaddr)
-                    ))
+                    ), cli_mode)
                 else:
-                    print("Found : {} at {} (Virtual Address and section not found)".format(match.rule, hex(paddr)))
+                    cli_out("Found : {} at {} (Virtual Address and section not found)".format(match.rule, hex(paddr)), cli_mode)
         else:
-            print("No cryptographic data found!")
+            cli_out("No cryptographic data found!", cli_mode)
+
+        return {} if not results else {"crypto_matches": results}
+
+    def run_cli(self, args, pe, data):
+        self.get_results(pe, data, cli_mode=True)

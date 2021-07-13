@@ -16,7 +16,6 @@ def init_plugins():
         PLUGINS[plugin.name] = plugin()
     return PLUGINS
 
-
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(help='Plugins')
@@ -40,13 +39,13 @@ def main():
                 with open(args.PEFILE, 'rb') as f:
                     data = f.read()
                 pe = pefile.PE(data=data)
-                plugins[args.plugin].run(args, pe, data)
+                plugins[args.plugin].run_cli(args, pe, data)
             except pefile.PEFormatError:
                 print("Invalid PE file")
             except FileNotFoundError:
                 print("File not found")
         else:
-            plugins[args.plugin].run(args)
+            plugins[args.plugin].run_cli(args)
     else:
         parser.print_help()
 
